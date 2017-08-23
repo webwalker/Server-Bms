@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.MenuAuthMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.MenuAuth">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="MenuID" property="menuID" jdbcType="INTEGER" />
+		<result column="AuthID" property="authID" jdbcType="INTEGER" />
+		<result column="FunctionID" property="functionID" jdbcType="INTEGER" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, MenuID, AuthID,FunctionID, CreateTime, CreateUser,
+		UpdateTime
+	</sql>
+	<sql id="menuAuthMap">
+		ma.MenuID, ma.createtime, ma.createuser, ma.updatetime
+	</sql>
+	<select id="getAuthElements" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select a.ID, a.FunctionID, a.AuthName, a.Description, a.`Status`,
+		<include refid="menuAuthMap" />
+		from bmsauth a left join
+		(select * from bmsmenuauth where MenuID=
+		#{ID,jdbcType=INTEGER}) ma
+		on a.ID = ma.authid
+		where a.`Status` = 1
+	</select>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select DISTINCT ma.MenuID,
+		a.ID
+		as AuthID,a.FunctionID,a.AuthName
+		from
+		bmsmenuauth ma, bmsauth a
+		where
+		ma.AuthID =
+		a.ID
+		and
+		a.`status` = 1
+	</select>
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into bmsmenuauth
+		(MenuID, AuthID,CreateUser)
+		values
+		<foreach item="item" collection="list" index="index"
+			separator=",">
+			(#{item.menuID,jdbcType=INTEGER},
+			#{item.authID,jdbcType=INTEGER},
+			#{item.createUser,jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	<delete id="batchDelete" parameterType="java.util.Map">
+		DELETE FROM bmsmenuauth where MenuID = #{menuID,jdbcType=INTEGER}
+		and
+		AuthID in
+		<foreach item="id" collection="authID" open="(" separator=","
+			close=")">
+			#{id,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsmenuauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsmenuauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.MenuAuth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsmenuauth (MenuID, AuthID, CreateTime,
+		CreateUser,
+		UpdateTime)
+		values (#{menuID,jdbcType=INTEGER},
+		#{authID,jdbcType=INTEGER},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.MenuAuth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsmenuauth
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="menuID != null">
+				MenuID,
+			</if>
+			<if test="authID != null">
+				AuthID,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="menuID != null">
+				#{menuID,jdbcType=INTEGER},
+			</if>
+			<if test="authID != null">
+				#{authID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.MenuAuth">
+		update bmsmenuauth
+		<set>
+			<if test="menuID != null">
+				MenuID = #{menuID,jdbcType=INTEGER},
+			</if>
+			<if test="authID != null">
+				AuthID = #{authID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.MenuAuth">
+		update bmsmenuauth
+		set MenuID = #{menuID,jdbcType=INTEGER},
+		AuthID =
+		#{authID,jdbcType=INTEGER},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

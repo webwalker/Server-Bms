@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.UrlSetMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.MenuAuth">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="FunctionID" property="functionID" jdbcType="VARCHAR" />
+		<result column="AuthName" property="authName" jdbcType="VARCHAR" />
+		<result column="Description" property="description" jdbcType="VARCHAR" />
+		<result column="Status" property="status" jdbcType="BIT" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, MenuID, AuthID, FunctionID, CreateTime, CreateUser,
+		UpdateTime
+	</sql>
+	<sql id="menuAuthMap">
+		ma.MenuID, ma.createtime, ma.createuser, ma.updatetime
+	</sql>
+	<select id="selectMenuUrl" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select *
+		from BMSAuthMapping
+		where MenuID =
+		#{ID,jdbcType=INTEGER}
+		order by updatetime desc
+	</select>
+	<select id="selectAuthUrl" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select *
+		from BMSAuthMapping
+		where AuthID =
+		#{ID,jdbcType=INTEGER}
+		order by updatetime desc
+	</select>
+	<insert id="insertSelective" parameterType="bms.core.model.MenuAuth">
+		insert into
+		BMSAuthMapping
+		(MenuID, AuthID, Url, Status, CreateUser)
+		values(#{menuID,jdbcType=INTEGER},
+		#{authID,jdbcType=INTEGER},
+		#{url,jdbcType=VARCHAR},
+		#{status,jdbcType=BIT},
+		#{createUser,jdbcType=VARCHAR})
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.MenuAuth">
+		update
+		BMSAuthMapping
+		set MenuID = #{menuID,jdbcType=INTEGER},
+		AuthID =
+		#{authID,jdbcType=INTEGER},
+		Url = #{url,jdbcType=INTEGER},
+		Status =
+		#{status,jdbcType=BIT},
+		CreateUser = #{createUser,jdbcType=VARCHAR}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<delete id="deleteByIDs" parameterType="java.lang.String">
+		DELETE FROM BMSAuthMapping where id in
+		<foreach item="aid" collection="array" open="(" separator=","
+			close=")">
+			#{aid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>	
+	<delete id="deleteMenuUrl" parameterType="java.lang.Integer">
+		DELETE FROM
+		BMSAuthMapping
+		where MenuID =
+		#{ID,jdbcType=INTEGER} and
+		AuthID = 0
+	</delete>
+	<delete id="deleteAuthUrl" parameterType="java.lang.Integer">
+		DELETE FROM
+		BMSAuthMapping
+		where AuthID =
+		#{ID,jdbcType=INTEGER} and
+		MenuID = 0
+	</delete>
+</mapper>

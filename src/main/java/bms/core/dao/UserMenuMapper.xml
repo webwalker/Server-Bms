@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.UserMenuMapper">
+	<resultMap id="userMap" type="bms.core.model.User">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<collection property="userID" column="UserID" select="selectUserGroup"
+			ofType="bms.core.model.UserGroup" />
+	</resultMap>
+	<resultMap id="groupMap" type="bms.core.model.UserGroup">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="UserID" property="userID" jdbcType="INTEGER" />
+		<result column="GroupID" property="groupID" jdbcType="INTEGER" />
+		<collection property="groupID" column="GroupID" select="selectGroupMenu"
+			ofType="bms.core.model.GroupMenu" />
+	</resultMap>
+	<resultMap id="groupMenuMap" type="bms.core.model.GroupMenu">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="GroupID" property="groupID" jdbcType="INTEGER" />
+		<result column="MenuID" property="menuID" jdbcType="INTEGER" />
+		<collection property="ID" column="ID" select="menuMap"
+			ofType="bms.core.model.Menu" />
+	</resultMap>
+	<resultMap id="menuMap" type="bms.core.model.Menu">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="MenuName" property="menuName" jdbcType="VARCHAR" />
+		<result column="ParentID" property="parentID" jdbcType="INTEGER" />
+		<result column="Url" property="url" jdbcType="VARCHAR" />
+		<result column="Sort" property="sort" jdbcType="INTEGER" />
+		<result column="MenuType" property="menuType" jdbcType="INTEGER" />
+	</resultMap>
+
+	<select id="selectGroupMenu" resultMap="groupMenuMap"
+		parameterType="java.lang.Integer">
+		select GroupID,MenuID from bmsgroupmenu where GroupID =
+		#{ID}
+	</select>
+
+	<select id="selectMenu" resultMap="menuMap" parameterType="java.lang.Integer">
+		select *
+		from bmsmenu where ID = #{ID}
+	</select>
+
+	<select id="selectByPrimaryKey" resultMap="menuMap"
+		parameterType="java.lang.Integer">
+		select m.*
+		from bmsmenu m left join bmsgroupmenu gm on
+		m.ID = gm.MenuID
+		left join bmsusergroup ug on ug.GroupID = gm.GroupID
+		left join bmsuser u on u.ID = ug.UserID
+		where u.ID
+		=#{ID,jdbcType=INTEGER}
+		order by m.sort
+	</select>
+</mapper>

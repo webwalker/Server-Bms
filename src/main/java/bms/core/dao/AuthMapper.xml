@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.AuthMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.Auth">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="FunctionID" property="functionID" jdbcType="VARCHAR" />
+		<result column="AuthName" property="authName" jdbcType="VARCHAR" />
+		<result column="Description" property="description" jdbcType="VARCHAR" />
+		<result column="Status" property="status" jdbcType="BIT" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, FunctionID, AuthName, Description, Status,
+		CreateTime,
+		CreateUser,
+		UpdateTime
+	</sql>
+	<delete id="deleteByIDs" parameterType="java.lang.String">
+		DELETE FROM bmsauth where id in
+		<foreach item="aid" collection="array" open="(" separator=","
+			close=")">
+			#{aid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<select id="selectAuthIDs" resultType="java.lang.String"
+		parameterType="java.lang.Integer">
+		select DISTINCT ba.FunctionID
+		from bmsusergroup bug,
+		bmsgroupauth bga, bmsauth ba
+		where bug.UserID = #{ID,jdbcType=INTEGER}
+		and bug.GroupID =
+		bga.GroupID
+		and bga.AuthID = ba.ID
+	</select>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from bmsauth
+		order by UpdateTime desc
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.Auth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsauth (FunctionID,AuthName, Description, Status,
+		CreateTime,
+		CreateUser, UpdateTime
+		)
+		values
+		(#{functionID,jdbcType=VARCHAR},
+		#{authName,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{status,jdbcType=BIT},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR},
+		#{updateTime,jdbcType=TIMESTAMP}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.Auth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsauth
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="functionID != null">
+				FunctionID,
+			</if>
+			<if test="authName != null">
+				AuthName,
+			</if>
+			<if test="description != null">
+				Description,
+			</if>
+			<if test="status != null">
+				Status,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="functionID != null">
+				#{functionID,jdbcType=VARCHAR},
+			</if>
+			<if test="authName != null">
+				#{authName,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				#{status,jdbcType=BIT},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.Auth">
+		update bmsauth
+		<set>
+			<if test="functionID != null">
+				FunctionID = #{functionID,jdbcType=VARCHAR},
+			</if>
+			<if test="authName != null">
+				AuthName = #{authName,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				Description = #{description,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null">
+				Status = #{status,jdbcType=BIT},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.Auth">
+		update bmsauth
+		set
+		FunctionID = #{functionID,jdbcType=VARCHAR},
+		AuthName =
+		#{authName,jdbcType=VARCHAR},
+		Description =
+		#{description,jdbcType=VARCHAR},
+		Status = #{status,jdbcType=BIT},
+		CreateTime = #{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

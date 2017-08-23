@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.GroupMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.Group">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="GroupName" property="groupName" jdbcType="VARCHAR" />
+		<result column="GroupType" property="groupType" jdbcType="VARCHAR" />
+		<result column="Description" property="description" jdbcType="VARCHAR" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="CreateUserID" property="createUserID" jdbcType="INTEGER" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, GroupName, GroupType, Description, CreateTime,
+		CreateUser,UpdateTime
+	</sql>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroup order by UpdateTime desc
+	</select>
+	<select id="selectByType" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select * from bmsgroup
+		where grouptype =
+		#{groupType,jdbcType=VARCHAR}
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroup
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" statementType="CALLABLE"
+		parameterType="java.util.Map">
+		{call
+		sp_group_delete(
+		<foreach item="gid" collection="array" open="(" separator=","
+			close=")">
+			#{gid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+		,#{result,mode=OUT,jdbcType=INTEGER})}
+	</delete>
+	<delete id="deleteByIDs" parameterType="java.lang.String">
+		DELETE FROM bmsgroup where id in
+		<foreach item="gid" collection="array" open="(" separator=","
+			close=")">
+			#{gid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.Group">
+		insert into bmsgroup
+		(GroupName, GroupType,Description,
+		CreateUser, CreateUserID)
+		values
+		(#{groupName,jdbcType=VARCHAR},
+		#{groupType,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{createUser,jdbcType=VARCHAR},
+		#{createUserID,jdbcType=INTEGER})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.Group">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsgroup
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="groupName != null">
+				GroupName,
+			</if>
+			<if test="description != null">
+				Description,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="createUserID != null">
+				CreateUserID,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="groupName != null">
+				#{groupName,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="createUserID != null">
+				#{createUserID,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.Group">
+		update bmsgroup
+		<set>
+			<if test="groupName != null">
+				GroupName = #{groupName,jdbcType=VARCHAR},
+			</if>
+			<if test="groupType != null">
+				GroupType = #{groupType,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				Description = #{description,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="createUserID != null">
+				CreateUserID = #{createUserID,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.Group">
+		update bmsgroup
+		set GroupName = #{groupName,jdbcType=VARCHAR},
+		GroupType =
+		#{groupType,jdbcType=VARCHAR},
+		Description =
+		#{description,jdbcType=VARCHAR},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		CreateUserID =
+		#{createUserID,jdbcType=INTEGER},
+		UpdateTime =
+		#{updateTime
+		,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

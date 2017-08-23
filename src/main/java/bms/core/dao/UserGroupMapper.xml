@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.UserGroupMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.UserGroup">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="UserID" property="userID" jdbcType="INTEGER" />
+		<result column="GroupID" property="groupID" jdbcType="INTEGER" />
+		<result column="GroupName" property="groupName" jdbcType="VARCHAR" />
+		<result column="Email" property="email" jdbcType="VARCHAR" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<resultMap id="groupMap" type="bms.core.model.Group">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="GroupName" property="groupName" jdbcType="VARCHAR" />
+		<result column="Description" property="description" jdbcType="VARCHAR" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, UserID, GroupID, CreateTime, CreateUser,UpdateTime
+	</sql>
+	<sql id="userGroupMap">
+		ug.GroupID, ug.CreateTime, ug.CreateUser,ug.UpdateTime
+	</sql>
+	<sql id="Group_Column_List">
+		g.ID, g.GroupName, g.Description,
+		g.CreateTime,g.UpdateTime,g.CreateUser
+	</sql>
+	<select id="selectGroupUsersByType" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select bg.ID, bg.GroupName, bu.UserName, bu.Phone,
+		bu.Email from bmsgroup bg, bmsusergroup bug, bmsuser bu
+		where GroupType
+		= #{groupType,jdbcType=VARCHAR}
+		and bg.ID = bug.GroupID
+		and bug.UserID =
+		bu.ID
+		and bu.Active = 1
+	</select>
+	<select id="selectAutoMailGroupUsers" resultMap="BaseResultMap">
+		select DISTINCT
+		bu.Email,bu.Phone
+		from bmsgroup bg, bmsusergroup bug, bmsuser bu
+		where
+		bg.GroupName = 'automail'
+		and bg.ID = bug.GroupID
+		and bug.UserID = bu.ID
+		and bu.Active = 1
+	</select>
+	<select id="selectUsersByGroupIDs" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select DISTINCT bu.Email, bu.Phone from bmsgroup bg, bmsusergroup bug,
+		bmsuser bu
+		where bg.id in
+		<foreach item="gid" collection="array" open="(" separator=","
+			close=")">
+			#{gid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+		and bg.ID = bug.GroupID
+		and bug.UserID = bu.ID
+	</select>
+	<select id="selectUserGroup" resultMap="groupMap" parameterType="java.lang.Integer">
+		SELECT
+		<include refid="Group_Column_List" />
+		from bmsuser u, bmsgroup g
+		where u.ID =
+		#{ID,jdbcType=INTEGER}
+		and
+		u.Active =1
+		and u.ID = g.CreateUserID
+		order by g.UpdateTime desc
+	</select>
+	<select id="selectAuthGroup" resultMap="groupMap" parameterType="java.lang.Integer">
+		SELECT
+		<include refid="Group_Column_List" />
+		from bmsuser u LEFT JOIN
+		bmsusergroup ug on
+		u.ID = ug.UserID
+		LEFT JOIN
+		bmsgroup g on ug.GroupID = g.ID
+		where u.ID =
+		#{ID,jdbcType=INTEGER}
+		and
+		u.Active =1
+	</select>
+	<select id="selectAllGroupUsers" resultMap="BaseResultMap"
+		parameterType="bms.core.model.UserGroup">
+		select u.ID, u.UserName, u.UserType,
+		u.Description,
+		u.Active,
+		<include refid="userGroupMap" />
+		from
+		bmsuser u left join (select * from bmsusergroup where groupid=
+		#{groupID,jdbcType=INTEGER}) ug on u.ID = ug.UserID
+	</select>
+	<select id="selectGroupUsers" resultMap="BaseResultMap"
+		parameterType="bms.core.model.UserGroup">
+		SELECT u2.ID, u2.UserName, u2.UserType,
+		u2.Description,u2.Active,
+		<include refid="userGroupMap" />
+		from bmsuser u1 inner JOIN bmsuser u2 on
+		u1.ID =
+		u2.CreateUserID
+		left
+		join
+		(select * from bmsusergroup where groupid=
+		#{groupID,jdbcType=INTEGER}) ug on u2.ID = ug.UserID
+		where u1.ID =
+		#{userID,jdbcType=INTEGER}
+	</select>
+	<select id="selectAllUserGroups" resultMap="BaseResultMap"
+		parameterType="bms.core.model.UserGroup">
+		select bg.*,ug.GroupID
+		from bmsgroup bg left join
+		(select
+		* from bmsusergroup
+		where
+		userid=#{userID,jdbcType=INTEGER}) ug
+		on bg.ID
+		= ug.GroupID
+	</select>
+	<select id="selectUserGroups" resultMap="BaseResultMap"
+		parameterType="bms.core.model.UserGroup">
+		SELECT
+		g.*, ug.GroupID
+		from bmsuser u, bmsgroup g left
+		join
+		(select * from
+		bmsusergroup where
+		userid=#{targetUserID,jdbcType=INTEGER}) ug on g.ID
+		= ug.GroupID
+		where
+		u.ID = #{userID,jdbcType=INTEGER}
+		and u.Active =1 and
+		u.ID =
+		g.CreateUserID
+		order by g.UpdateTime desc
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsusergroup
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="batchDelete" parameterType="java.util.Map">
+		DELETE FROM bmsusergroup where GroupID = #{groupID,jdbcType=INTEGER}
+		and UserID in
+		<foreach item="id" collection="userID" open="(" separator=","
+			close=")">
+			#{id,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<delete id="batchDeleteUserGroups" parameterType="java.util.Map">
+		DELETE FROM bmsusergroup where UserID = #{userID,jdbcType=INTEGER}
+		and
+		GroupID in
+		<foreach item="id" collection="groupID" open="(" separator=","
+			close=")">
+			#{id,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsusergroup
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into bmsusergroup
+		(UserID, GroupID,
+		CreateUser)
+		values
+		<foreach item="item" collection="list" index="index"
+			separator=",">
+			(#{item.userID,jdbcType=INTEGER},
+			#{item.groupID,jdbcType=INTEGER},
+			#{item.createUser,jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	<insert id="insert" parameterType="bms.core.model.UserGroup">
+		insert into bmsusergroup
+		(UserID, GroupID,
+		CreateUser)
+		values
+		(#{userID,jdbcType=INTEGER},
+		#{groupID,jdbcType=INTEGER},
+		#{createUser,jdbcType=VARCHAR})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.UserGroup">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsusergroup
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="userID != null">
+				UserID,
+			</if>
+			<if test="groupID != null">
+				GroupID,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="userID != null">
+				#{userID,jdbcType=INTEGER},
+			</if>
+			<if test="groupID != null">
+				#{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.UserGroup">
+		update bmsusergroup
+		<set>
+			<if test="userID != null">
+				UserID = #{userID,jdbcType=INTEGER},
+			</if>
+			<if test="groupID != null">
+				GroupID = #{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.UserGroup">
+		update
+		bmsusergroup
+		set UserID = #{userID,jdbcType=INTEGER},
+		GroupID =
+		#{groupID,jdbcType=INTEGER},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime
+		,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

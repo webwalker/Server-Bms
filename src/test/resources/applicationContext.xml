@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/tx    
+        http://www.springframework.org/schema/tx/spring-tx-3.2.xsd  
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.2.xsd ">
+
+	<!-- 可直接通过该模板执行SQL -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- spring and mybatis 集成 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 由spring管理mybatis的事务 -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- <tx:annotation-driven /> -->
+
+	<!-- 事务通知 -->
+	<tx:advice id="myAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true" />
+			<tx:method name="query*" read-only="true" />
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="load*" read-only="true" />
+			<tx:method name="select*" read-only="true" />
+			<tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 切面配置 -->
+	<aop:config expose-proxy="true">
+		<aop:pointcut id="mycut" expression="execution(* bms.core.service..*.*(..))" />
+		<aop:advisor advice-ref="myAdvice" pointcut-ref="mycut" />
+	</aop:config>
+
+	<!-- 就可以在任何地方获取到spring注册的bean的实例 -->
+	<bean id="SpringContextUtil" class="bms.core.common.SpringContextUtil" />
+
+	<!-- 引入其它spring文件 -->
+	<import resource="/mybatis.xml" />
+</beans>

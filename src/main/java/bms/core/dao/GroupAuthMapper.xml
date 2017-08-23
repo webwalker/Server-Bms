@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.GroupAuthMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.GroupAuth">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="GroupID" property="groupID" jdbcType="INTEGER" />
+		<result column="AuthID" property="authID" jdbcType="INTEGER" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, GroupID, AuthID, CreateTime, CreateUser, UpdateTime
+	</sql>
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into bmsgroupauth
+		(GroupID, AuthID,CreateUser)
+		values
+		<foreach item="item" collection="list" index="index"
+			separator=",">
+			(#{item.groupID,jdbcType=INTEGER},
+			#{item.authID,jdbcType=INTEGER},
+			#{item.createUser,jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	<select id="selectByGroupID" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroupauth
+		where GroupID = #{ID,jdbcType=INTEGER}
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroupauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByGroupID" parameterType="java.lang.Integer">
+		delete from
+		bmsgroupauth
+		where GroupID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsgroupauth
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.GroupAuth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsgroupauth (GroupID, AuthID, CreateTime,
+		CreateUser,
+		UpdateTime)
+		values (#{groupID,jdbcType=INTEGER},
+		#{authID,jdbcType=INTEGER},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.GroupAuth">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsgroupauth
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="groupID != null">
+				GroupID,
+			</if>
+			<if test="authID != null">
+				AuthID,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="groupID != null">
+				#{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="authID != null">
+				#{authID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.GroupAuth">
+		update bmsgroupauth
+		<set>
+			<if test="groupID != null">
+				GroupID = #{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="authID != null">
+				AuthID = #{authID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.GroupAuth">
+		update
+		bmsgroupauth
+		set GroupID = #{groupID,jdbcType=INTEGER},
+		AuthID =
+		#{authID,jdbcType=INTEGER},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

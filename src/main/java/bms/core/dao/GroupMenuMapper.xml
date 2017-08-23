@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.GroupMenuMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.GroupMenu">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="GroupID" property="groupID" jdbcType="INTEGER" />
+		<result column="MenuID" property="menuID" jdbcType="INTEGER" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, GroupID, MenuID, CreateTime, CreateUser, UpdateTime
+	</sql>
+	<insert id="batchInsert" parameterType="java.util.List">
+		insert into bmsgroupmenu
+		(GroupID, MenuID,CreateUser)
+		values
+		<foreach item="item" collection="list" index="index"
+			separator=",">
+			(#{item.groupID,jdbcType=INTEGER},
+			#{item.menuID,jdbcType=INTEGER},
+			#{item.createUser,jdbcType=VARCHAR})
+		</foreach>
+	</insert>
+	<select id="selectByGroupID" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroupmenu
+		where GroupID = #{ID,jdbcType=INTEGER}
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsgroupmenu
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByGroupID" parameterType="java.lang.Integer">
+		delete from
+		bmsgroupmenu
+		where GroupID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsgroupmenu
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.GroupMenu">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsgroupmenu (GroupID, MenuID, CreateTime,
+		CreateUser,
+		UpdateTime)
+		values (#{groupID,jdbcType=INTEGER},
+		#{menuID,jdbcType=INTEGER},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR},
+		#{updateTime,jdbcType=TIMESTAMP})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.GroupMenu">
+		<selectKey resultType="java.lang.Integer" keyProperty="ID"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		insert into bmsgroupmenu
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="groupID != null">
+				GroupID,
+			</if>
+			<if test="menuID != null">
+				MenuID,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="groupID != null">
+				#{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="menuID != null">
+				#{menuID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.GroupMenu">
+		update bmsgroupmenu
+		<set>
+			<if test="groupID != null">
+				GroupID = #{groupID,jdbcType=INTEGER},
+			</if>
+			<if test="menuID != null">
+				MenuID = #{menuID,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.GroupMenu">
+		update
+		bmsgroupmenu
+		set GroupID = #{groupID,jdbcType=INTEGER},
+		MenuID =
+		#{menuID,jdbcType=INTEGER},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime
+		,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

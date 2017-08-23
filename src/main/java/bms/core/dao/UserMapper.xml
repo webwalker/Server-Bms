@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.UserMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.User">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="UserName" property="userName" jdbcType="VARCHAR" />
+		<result column="UserPass" property="userPass" jdbcType="VARCHAR" />
+		<result column="UserType" property="userType" jdbcType="INTEGER" />
+		<result column="Email" property="email" jdbcType="VARCHAR" />
+		<result column="Mobile" property="mobile" jdbcType="VARCHAR" />
+		<result column="Phone" property="phone" jdbcType="VARCHAR" />
+		<result column="Description" property="description" jdbcType="VARCHAR" />
+		<result column="Active" property="active" jdbcType="BIT" />
+		<result column="LogonTimes" property="logonTimes" jdbcType="INTEGER" />
+		<result column="LogonIp" property="logonIp" jdbcType="VARCHAR" />
+		<result column="LastLogonTime" property="lastLogonTime"
+			jdbcType="TIMESTAMP" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="CreateUserID" property="createUserID" jdbcType="INTEGER" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, UserName, UserPass, UserType,Email, Mobile, Phone,
+		Description,
+		Active,
+		LogonTimes, LogonIp, LastLogonTime,
+		CreateTime,
+		CreateUser,UpdateTime
+	</sql>
+	<!-- 查询只采用菜单来控制权限集合 -->
+	<select id="selectMenuAuths" resultType="java.lang.String"
+		parameterType="java.lang.Integer">
+		<![CDATA[
+		select Url from (
+		select
+		bm.Url
+		from bmsuser bu, bmsusergroup
+		bug, bmsgroupmenu bgm, bmsmenu bm
+		where bu.ID = #{ID,jdbcType=INTEGER}
+		and bu.ID= bug.UserID
+		and bug.GroupID = bgm.GroupID
+		and
+		bgm.MenuID =
+		bm.ID
+		UNION
+		select bam.Url
+		from bmsuser bu, bmsusergroup
+		bug, bmsgroupmenu
+		bgm, bmsauthmapping bam
+		where bu.ID = #{ID,jdbcType=INTEGER}
+		and bu.ID=
+		bug.UserID
+		and bug.GroupID = bgm.GroupID
+		and
+		bgm.MenuID = bam.MenuID
+		) a
+		where Url <> '']]>
+	</select>
+	<!-- 查询采用菜单和页面级元素来控制的权限集合，菜单可映射多个地址，权限可映射多个地址 -->
+	<select id="selectAllAuths" resultType="java.lang.String"
+		parameterType="java.lang.Integer">
+		<![CDATA[
+		select Url from (
+		select bm.Url
+		from bmsuser bu,
+		bmsusergroup bug, bmsgroupmenu bgm, bmsmenu bm
+		where bu.ID =
+		#{ID,jdbcType=INTEGER}
+		and
+		bu.ID= bug.UserID
+		and bug.GroupID =
+		bgm.GroupID
+		and bgm.MenuID = bm.ID
+		UNION
+		select bam.Url
+		from bmsuser bu,
+		bmsusergroup bug, bmsgroupmenu
+		bgm, bmsauthmapping bam
+		where bu.ID =
+		#{ID,jdbcType=INTEGER}
+		and bu.ID= bug.UserID
+		and
+		bug.GroupID =
+		bgm.GroupID
+		and bgm.MenuID = bam.MenuID
+		UNION
+		select
+		bam.Url
+		from bmsuser
+		bu, bmsusergroup bug, bmsgroupauth bga,
+		bmsauthmapping bam
+		where bu.ID =
+		#{ID,jdbcType=INTEGER}
+		and bu.ID= bug.UserID
+		and bug.GroupID
+		=
+		bga.GroupID
+		and bga.AuthID = bam.AuthID
+		) a
+		where Url <> '' ]]>
+	</select>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from bmsuser order by UpdateTime desc
+	</select>
+	<select id="selectMyUsers" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		SELECT u2.*
+		from bmsuser u1, bmsuser u2
+		where u1.ID =
+		#{ID,jdbcType=INTEGER}
+		and u1.ID = u2.CreateUserID
+		order by
+		u1.UpdateTime desc
+	</select>
+	<select id="selectByUserName" resultMap="BaseResultMap"
+		parameterType="bms.core.model.User">
+		select
+		<include refid="Base_Column_List" />
+		from bmsuser
+		where UserName = #{userName}
+	</select>
+	<select id="selectByPassword" resultMap="BaseResultMap"
+		parameterType="bms.core.model.User">
+		select
+		<include refid="Base_Column_List" />
+		from bmsuser
+		where UserName = #{userName} and UserPass = #{userPass}
+		and Active = 1
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsuser
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByIDs" parameterType="java.lang.String">
+		DELETE FROM bmsuser where id in
+		<foreach item="uid" collection="array" open="(" separator=","
+			close=")">
+			#{uid,mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		update bmsuser
+		set
+		active = 0
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="bms.core.model.User">
+		insert into bmsuser (UserName,
+		UserPass, UserType, Email,
+		Mobile,
+		Phone,
+		Description, Active,
+		LogonTimes, LastLogonTime,
+		CreateUser,CreateUserID)
+		values
+		(#{userName,jdbcType=VARCHAR},
+		#{userPass,jdbcType=VARCHAR},
+		#{userType,jdbcType=INTEGER},
+		#{email,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR},
+		#{phone,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{active,jdbcType=BIT},
+		#{logonTimes,jdbcType=INTEGER},
+		#{lastLogonTime,jdbcType=TIMESTAMP},
+		#{createUser,jdbcType=VARCHAR},
+		#{createUserID,jdbcType=INTEGER})
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.User">
+		insert into bmsuser
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="userName != null">
+				UserName,
+			</if>
+			<if test="userPass != null">
+				UserPass,
+			</if>
+			<if test="userType != null">
+				UserType,
+			</if>
+			<if test="email != null">
+				Email,
+			</if>
+			<if test="mobile != null">
+				Mobile,
+			</if>
+			<if test="phone != null">
+				Phone,
+			</if>
+			<if test="description != null">
+				Description,
+			</if>
+			<if test="active != null">
+				Active,
+			</if>
+			<if test="logonTimes != null">
+				LogonTimes,
+			</if>
+			<if test="lastLogonTime != null">
+				LastLogonTime,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="createUserID != null">
+				CreateUserID,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="userName != null">
+				#{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="userPass != null">
+				#{userPass,jdbcType=VARCHAR},
+			</if>
+			<if test="userType != null">
+				#{userType,jdbcType=VARCHAR},
+			</if>
+			<if test="email != null">
+				#{email,jdbcType=VARCHAR},
+			</if>
+			<if test="mobile != null">
+				#{mobile,jdbcType=VARCHAR},
+			</if>
+			<if test="phone != null">
+				#{phone,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			<if test="active != null">
+				#{active,jdbcType=BIT},
+			</if>
+			<if test="logonTimes != null">
+				#{logonTimes,jdbcType=INTEGER},
+			</if>
+			<if test="lastLogonTime != null">
+				#{lastLogonTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="createUserID != null">
+				#{createUserID,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateLogin" parameterType="bms.core.model.User">
+		update bmsuser
+		set
+		LastLogonTime = now(), LogonTimes = LogonTimes + 1, LogonIp
+		=#{logonIp,jdbcType=INTEGER}
+		where ID =
+		#{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.User">
+		update bmsuser
+		<set>
+			<if test="userPass != null">
+				<if test="userPass != ''">
+					UserPass = #{userPass,jdbcType=VARCHAR},
+				</if>
+			</if>
+			<if test="userType != null">
+				UserType = #{userType,jdbcType=VARCHAR},
+			</if>
+			<if test="email != null">
+				Email = #{email,jdbcType=VARCHAR},
+			</if>
+			<if test="mobile != null">
+				Mobile = #{mobile,jdbcType=VARCHAR},
+			</if>
+			<if test="phone != null">
+				Phone = #{phone,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				Description = #{description,jdbcType=VARCHAR},
+			</if>
+			<if test="active != null">
+				Active = #{active,jdbcType=BIT},
+			</if>
+			<if test="logonTimes != null">
+				LogonTimes = #{logonTimes,jdbcType=INTEGER},
+			</if>
+			<if test="lastLogonTime != null">
+				LastLogonTime = #{lastLogonTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="createUserID != null">
+				CreateUserID = #{createUserID,jdbcType=INTEGER},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.User">
+		update bmsuser
+		set
+		UserPass =
+		#{userPass,jdbcType=VARCHAR},
+		UserType =
+		#{userType,jdbcType=INTEGER},
+		Email = #{email,jdbcType=VARCHAR},
+		Mobile
+		=
+		#{mobile,jdbcType=VARCHAR},
+		Phone =
+		#{phone,jdbcType=VARCHAR},
+		Description =
+		#{description,jdbcType=VARCHAR},
+		Active =
+		#{active,jdbcType=BIT},
+		LogonTimes = #{logonTimes,jdbcType=INTEGER},
+		LastLogonTime =
+		#{lastLogonTime,jdbcType=TIMESTAMP},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		CreateUserID =
+		#{createUserID,jdbcType=INTEGER},
+		UpdateTime =
+		#{updateTime
+		,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

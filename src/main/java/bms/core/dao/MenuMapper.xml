@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="bms.core.dao.MenuMapper">
+	<resultMap id="BaseResultMap" type="bms.core.model.Menu">
+		<id column="ID" property="ID" jdbcType="INTEGER" />
+		<result column="MenuName" property="menuName" jdbcType="VARCHAR" />
+		<result column="ParentID" property="parentID" jdbcType="INTEGER" />
+		<result column="Url" property="url" jdbcType="VARCHAR" />
+		<result column="Sort" property="sort" jdbcType="INTEGER" />
+		<result column="MenuType" property="menuType" jdbcType="INTEGER" />
+		<result column="CreateTime" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CreateUser" property="createUser" jdbcType="VARCHAR" />
+		<result column="UpdateTime" property="updateTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, MenuName, ParentID, Url, Sort, MenuType, CreateTime,
+		CreateUser,UpdateTime
+	</sql>
+	<select id="selectAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from bmsmenu
+		order by sort
+	</select>
+	<select id="selectAllMenuUrls" resultType="java.lang.String">
+		<![CDATA[
+		select DISTINCT url
+		from (select url from bmsmenu where url<> ''
+		union
+		select url from
+		bmsauthmapping where url<> '') a ]]>
+	</select>
+	<select id="selectByParentID" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsmenu
+		where ParentID = #{parentID}
+	</select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from bmsmenu
+		where ID = #{ID,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByIDs" parameterType="java.lang.String">
+		DELETE FROM bmsmenu where id in
+		<foreach item="mid" collection="array" open="(" separator=","
+			close=")">
+			#{mid, mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<delete id="deleteByParentID" parameterType="java.lang.String">
+		DELETE FROM bmsmenu where ParentID in
+		<foreach item="pid" collection="array" open="(" separator=","
+			close=")">
+			#{pid, mode=IN,jdbcType=INTEGER}
+		</foreach>
+	</delete>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		bmsmenu
+		where ID = #{ID,jdbcType=INTEGER}
+	</delete>
+	<update id="updateMenuSort" parameterType="bms.core.model.Menu">
+		update bmsmenu
+		set
+		parentid = #{parentID,jdbcType=INTEGER},
+		sort =
+		#{sort,jdbcType=INTEGER},
+		updatetime = now()
+		where ID =
+		#{ID,jdbcType=INTEGER}
+	</update>
+	<insert id="insert" parameterType="bms.core.model.Menu">
+		insert into bmsmenu (MenuName,
+		ParentID, Url, Sort,
+		MenuType,
+		CreateUser
+		)
+		values
+		(#{menuName,jdbcType=VARCHAR},#{parentID,jdbcType=INTEGER},
+		#{url,jdbcType=VARCHAR},
+		#{sort,jdbcType=INTEGER},
+		#{menuType,jdbcType=INTEGER},
+		#{createUser,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="bms.core.model.Menu">
+		insert into bmsmenu
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="menuName != null">
+				MenuName,
+			</if>
+			<if test="parentID != null">
+				ParentID,
+			</if>
+			<if test="url != null">
+				Url,
+			</if>
+			<if test="sort != null">
+				Sort,
+			</if>
+			<if test="menuType != null">
+				MenuType,
+			</if>
+			<if test="createTime != null">
+				CreateTime,
+			</if>
+			<if test="createUser != null">
+				CreateUser,
+			</if>
+			<if test="updateTime != null">
+				UpdateTime,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="menuName != null">
+				#{menuName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentID != null">
+				#{parentID,jdbcType=INTEGER},
+			</if>
+			<if test="url != null">
+				#{url,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				#{sort,jdbcType=INTEGER},
+			</if>
+			<if test="menuType != null">
+				#{menuType,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="bms.core.model.Menu">
+		update bmsmenu
+		<set>
+			<if test="menuName != null">
+				MenuName = #{menuName,jdbcType=VARCHAR},
+			</if>
+			<if test="parentID != null">
+				ParentID = #{parentID,jdbcType=INTEGER},
+			</if>
+			<if test="url != null">
+				Url = #{url,jdbcType=VARCHAR},
+			</if>
+			<if test="sort != null">
+				Sort = #{sort,jdbcType=INTEGER},
+			</if>
+			<if test="menuType != null">
+				MenuType = #{menuType,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				CreateTime = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="createUser != null">
+				CreateUser = #{createUser,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				UpdateTime = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="bms.core.model.Menu">
+		update bmsmenu
+		set
+		ParentID = #{parentID,jdbcType=INTEGER},
+		Url = #{url,jdbcType=VARCHAR},
+		Sort = #{sort,jdbcType=INTEGER},
+		MenuType =
+		#{menuType,jdbcType=INTEGER},
+		CreateTime =
+		#{createTime,jdbcType=TIMESTAMP},
+		CreateUser =
+		#{createUser,jdbcType=VARCHAR},
+		UpdateTime =
+		#{updateTime
+		,jdbcType=TIMESTAMP}
+		where ID = #{ID,jdbcType=INTEGER}
+	</update>
+</mapper>

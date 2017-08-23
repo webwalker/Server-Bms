@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="     
+          http://www.springframework.org/schema/beans     
+          http://www.springframework.org/schema/beans/spring-beans-4.0.xsd     
+          http://www.springframework.org/schema/tx     
+          http://www.springframework.org/schema/tx/spring-tx-4.0.xsd    
+          http://www.springframework.org/schema/context     
+          http://www.springframework.org/schema/context/spring-context-4.0.xsd     
+          http://www.springframework.org/schema/aop     
+          http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+	<!-- 加载配置资源文件, 放到servlet的上下文中配置，controller就可以读取到了 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:configs.properties</value>
+				<value>classpath:smart.properties</value>
+			</list>
+		</property>
+	</bean>
+</beans>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:amq="http://activemq.apache.org/schema/core"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd 
+        http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.8.0.xsd">
+
+	<!-- 最大重发2次，间隔100ms, 当消息超过重试次数仍未被正确处理时，就把它放入到以 DLQ -->
+	<amq:redeliveryPolicy id="activeMQRedeliveryPolicy"
+		destination="#queueDestination" redeliveryDelay="100"
+		maximumRedeliveries="2" />
+
+	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://localhost:61616">
+		</property>
+		<!-- <constructor-arg index="0" value="tcp://localhost:61616"/> -->
+		<property name="userName" value="admin">
+		</property>
+		<property name="password" value="admin">
+		</property>
+		<property name="useAsyncSend" value="true" />
+		<!-- 暂不启用重发机制，消息安全性没那么高 -->
+		<!-- <property name="redeliveryPolicy" ref="activeMQRedeliveryPolicy" /> -->
+	</bean>
+
+	<bean id="cacheConnectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<constructor-arg ref="amqConnectionFactory" />
+		<property name="sessionCacheSize" value="100" />
+	</bean>
+
+	<!-- 配置connectionFactory -->
+	<bean id="poolConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<property name="connectionFactory" ref="amqConnectionFactory">
+		</property>
+		<property name="maxConnections" value="100"></property>
+	</bean>
+
+	<!-- Spring JMS Template -->
+	<bean id="jmsQueueTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="cacheConnectionFactory">
+		</property>
+		<property name="defaultDestination" ref="queueDestination" />
+		<!-- 区别它采用的模式为false是p2p(mq), 为true是订阅 -->
+		<property name="pubSubDomain" value="false" />
+		<!-- deliveryMode, priority, timeToLive 的开关，要生效，必须配置为true，默认false -->
+		<property name="explicitQosEnabled" value="true" />
+		<!-- 1为非持久化，2为持久化，可容灾计划 -->
+		<!-- 该配置生效后消息服务端自动进行默认形式的消息缓存处理，持久化到数据方便消息检索、状态查询 -->
+		<!-- 目前本故障分析系统不采用数据库持久化，仅采用kahadb本地持久化 -->
+		<property name="deliveryMode" value="2" />
+		<!-- ReDelivery机制 -->
+		<!-- <property name="sessionTransacted" value="true" /> -->
+	</bean>
+
+	<bean id="jmsTopicTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="poolConnectionFactory">
+		</property>
+		<property name="defaultDestination" ref="topicDestination" />
+		<!-- 区别它采用的模式为false是p2p(mq), 为true是订阅 -->
+		<property name="pubSubDomain" value="true" />
+		<!-- deliveryMode, priority, timeToLive 的开关，要生效，必须配置为true，默认false -->
+		<property name="explicitQosEnabled" value="true" />
+		<property name="deliveryMode" value="2" />
+		<property name="sessionTransacted" value="true" />
+	</bean>
+
+	<bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg index="0" value="com.bestv.appmonitor.mq" />
+	</bean>
+
+
+	<!-- 发送消息的目的地（一个队列） -->
+	<bean id="topicDestination" class="org.apache.activemq.command.ActiveMQTopic">
+		<!-- 设置消息队列的名字 -->
+		<constructor-arg index="0" value="com.bestv.appmonitor.mq" />
+	</bean>
+
+	<!-- Message Receiver Definition -->
+	<bean id="messageReceiver" class="bms.core.common.jms.MessageReceiver">
+	</bean>
+	<!-- 注释掉，避免WEB同时监听消息队列，处理了MQ服务未开启时异常的问题 -->
+	<!-- <bean class="bms.core.common.jms.MessageContainer"> -->
+	<!-- <property name="connectionFactory" ref="poolConnectionFactory" /> -->
+	<!-- <property name="destinationName" value="com.bestv.appmonitor.mq" /> -->
+	<!-- <property name="messageListener" ref="messageReceiver" /> -->
+	<!-- <property name="concurrency" value="4-8" /> -->
+	<!--<property name="concurrentConsumers" value="4"/> -->
+	<!-- </bean> -->
+
+</beans>
