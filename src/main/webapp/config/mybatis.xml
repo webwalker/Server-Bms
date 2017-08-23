@@ -13,6 +13,7 @@
 
 	<!-- 全部注入 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--如果使用了一个以上的DataSource, 自动装配可能失效,因此可用sqlSessionFactoryBeanName或sqlSessionTemplateBeanName来设置正确的bean名称-->
 		<!-- <property name="sqlSessionFactory" ref="sqlSessionFactory" /> -->
 		<property name="basePackage" value="bms.core.dao" />
 	</bean>
